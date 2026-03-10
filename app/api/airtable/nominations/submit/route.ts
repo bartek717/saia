@@ -573,7 +573,7 @@ export async function POST(request: Request) {
           ? new Date(`${deadlineDate}T23:59:59.000Z`).toISOString()
           : undefined;
         const token = createRefereeToken(refereeForm.id, expiryIso);
-        const link = `${APP_BASE_URL}/referee/${refereeForm.id}?token=${encodeURIComponent(token)}`;
+        const link = `${APP_BASE_URL}referee/${refereeForm.id}?token=${encodeURIComponent(token)}`;
 
         await base(TABLES.refereeForms).update(refereeForm.id, {
           Link: link,
