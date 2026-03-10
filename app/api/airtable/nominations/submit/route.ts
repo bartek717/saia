@@ -577,6 +577,7 @@ export async function POST(request: Request) {
 
         await base(TABLES.refereeForms).update(refereeForm.id, {
           Link: link,
+          "User Link": link,
           "Secure Token": token,
           "Token Expires At": expiryIso || undefined,
         });
