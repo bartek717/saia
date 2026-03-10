@@ -1,5 +1,6 @@
 import Airtable from "airtable";
 import { NextResponse } from "next/server";
+import { verifyRefereeToken } from "@/app/lib/refereeToken";
 
 const BASE_ID = process.env.AIRTABLE_BASE_ID || "appRaso1tDQvVu3Ry";
 const TABLES = {
@@ -13,6 +14,9 @@ function extractField(record: Airtable.Record<Airtable.FieldSet>, candidates: st
   for (const fieldName of candidates) {
     const value = record.get(fieldName);
     if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        return value.join("\n");
+      }
       return String(value);
     }
   }
@@ -37,7 +41,7 @@ function parseQuestions(raw: string, awardName: string) {
       }
     }
   } catch {
-    // Fall through to line parsing.
+    // Continue to line parsing.
   }
 
   const fromLines = raw
@@ -57,7 +61,7 @@ function parseQuestions(raw: string, awardName: string) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ refereeFormId: string }> },
 ) {
   const pat = process.env.AIRTABLE_PAT;
@@ -68,9 +72,21 @@ export async function GET(
 
   try {
     const { refereeFormId } = await context.params;
-    const base = new Airtable({ apiKey: pat }).base(BASE_ID);
+    const url = new URL(request.url);
+    const token = url.searchParams.get("token") || "";
+    const tokenCheck = verifyRefereeToken(token, refereeFormId);
 
+    if (!tokenCheck.ok) {
+      return NextResponse.json({ error: tokenCheck.reason }, { status: 403 });
+    }
+
+    const base = new Airtable({ apiKey: pat }).base(BASE_ID);
     const refereeForm = await base(TABLES.refereeForms).find(refereeFormId);
+
+    const storedToken = extractField(refereeForm, ["Secure Token"]);
+    if (storedToken && storedToken !== token) {
+      return NextResponse.json({ error: "Token mismatch." }, { status: 403 });
+    }
 
     const nominationId = ((refereeForm.get("Nomination") as string[] | undefined) || [])[0];
     const refereeId = ((refereeForm.get("Referee") as string[] | undefined) || [])[0];
@@ -90,6 +106,7 @@ export async function GET(
 
     const rawQuestions = award
       ? extractField(award, [
+          "Referee Questions JSON",
           "Questions",
           "Question(s)",
           "Referee Questions",
@@ -105,6 +122,7 @@ export async function GET(
     const refereeName =
       (referee ? extractField(referee, ["Full Name", "Name"]) : "") ||
       extractField(refereeForm, ["Name"]);
+
     const submissionStatus = extractField(refereeForm, ["Submission Status"]) || "Not Started";
     const submittedAt = extractField(refereeForm, ["Date Submitted"]);
     const isSubmitted = submissionStatus.toLowerCase() === "submitted";

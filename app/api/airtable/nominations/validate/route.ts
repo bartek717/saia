@@ -1,31 +1,29 @@
 import Airtable from "airtable";
 import { NextResponse } from "next/server";
+import { AWARD_DEFINITIONS, isAwardCategory, normalizePhone } from "@/app/lib/awardConfig";
 
 const BASE_ID = process.env.AIRTABLE_BASE_ID || "appRaso1tDQvVu3Ry";
 const NOMINATIONS_TABLE_ID = "tblYVo7XWq6BVo9LY";
 
 type ValidationPayload = {
-  city?: string;
   awardCategory?: string;
-  nominationDeadline?: string;
-  nomineeName?: string;
   nomineeEmail?: string;
   nomineePhone?: string;
-  nomineeSummary?: string;
+  businessName?: string;
+  businessEmail?: string;
 };
 
 function normalizeText(value: string) {
   return value.trim().toLowerCase();
 }
 
-function normalizePhone(value: string) {
-  return value.replace(/\D/g, "");
-}
-
 function extractField(record: Airtable.Record<Airtable.FieldSet>, candidates: string[]) {
   for (const fieldName of candidates) {
     const value = record.get(fieldName);
     if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        return value.join(", ");
+      }
       return String(value);
     }
   }
@@ -47,43 +45,60 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid JSON payload." }, { status: 400 });
   }
 
-  const required = {
-    city: payload.city?.trim() || "",
-    awardCategory: payload.awardCategory?.trim() || "",
-    nominationDeadline: payload.nominationDeadline?.trim() || "",
-    nomineeName: payload.nomineeName?.trim() || "",
-    nomineeEmail: payload.nomineeEmail?.trim() || "",
-    nomineePhone: payload.nomineePhone?.trim() || "",
-    nomineeSummary: payload.nomineeSummary?.trim() || "",
-  };
+  const awardCategory = payload.awardCategory?.trim() || "";
 
-  const missing = Object.entries(required)
-    .filter(([, value]) => value.length === 0)
-    .map(([key]) => key);
+  if (!isAwardCategory(awardCategory)) {
+    return NextResponse.json({ ok: false, error: "Award category is required." }, { status: 400 });
+  }
 
-  if (missing.length > 0) {
+  const isBusiness = AWARD_DEFINITIONS[awardCategory].isBusiness;
+  const nomineeEmail = payload.nomineeEmail?.trim() || "";
+  const nomineePhone = payload.nomineePhone?.trim() || "";
+  const businessName = payload.businessName?.trim() || "";
+  const businessEmail = payload.businessEmail?.trim() || "";
+
+  if (isBusiness) {
+    if (!businessName || !businessEmail) {
+      return NextResponse.json(
+        { ok: false, error: "Business name and business email are required for duplicate checks." },
+        { status: 400 },
+      );
+    }
+  } else if (!nomineeEmail && !nomineePhone) {
     return NextResponse.json(
-      {
-        ok: false,
-        error: "All inputs are required.",
-        missingFields: missing,
-      },
+      { ok: false, error: "Nominee email or phone is required for duplicate checks." },
       { status: 400 },
     );
   }
-
-  const targetName = normalizeText(required.nomineeName);
-  const targetEmail = normalizeText(required.nomineeEmail);
-  const targetPhone = normalizePhone(required.nomineePhone);
 
   try {
     const base = new Airtable({ apiKey: pat }).base(BASE_ID);
     const records = await base(NOMINATIONS_TABLE_ID).select({ view: "Grid view" }).all();
 
+    const categoryKey = normalizeText(awardCategory);
     const duplicate = records.find((record) => {
-      const recordNomineeName = normalizeText(
-        extractField(record, ["Nominee Name", "Name", "Nominee"]),
+      const workflowStatus = normalizeText(
+        extractField(record, ["Nomination Workflow Status", "Nomination Status"]),
       );
+      if (workflowStatus === "duplicate rejected" || workflowStatus === "disqualified") {
+        return false;
+      }
+
+      const recordCategory = normalizeText(extractField(record, ["Award Name (Lookup)"]));
+      if (!recordCategory.includes(categoryKey)) {
+        return false;
+      }
+
+      if (isBusiness) {
+        const recordBusinessName = normalizeText(extractField(record, ["Business Name"]));
+        const recordBusinessEmail = normalizeText(extractField(record, ["Business Email"]));
+
+        return (
+          normalizeText(businessName) === recordBusinessName &&
+          normalizeText(businessEmail) === recordBusinessEmail
+        );
+      }
+
       const recordNomineeEmail = normalizeText(
         extractField(record, ["Nominee Email", "Email", "Email Address"]),
       );
@@ -91,28 +106,21 @@ export async function POST(request: Request) {
         extractField(record, ["Nominee Phone", "Phone", "Phone Number"]),
       );
 
-      const duplicateByName = targetName.length > 0 && recordNomineeName === targetName;
-      const duplicateByEmail =
-        targetEmail.length > 0 && recordNomineeEmail.length > 0 && recordNomineeEmail === targetEmail;
-      const duplicateByPhone =
-        targetPhone.length > 0 && recordNomineePhone.length > 0 && recordNomineePhone === targetPhone;
+      const duplicateByEmail = nomineeEmail
+        ? normalizeText(nomineeEmail) === recordNomineeEmail
+        : false;
+      const duplicateByPhone = nomineePhone
+        ? normalizePhone(nomineePhone) === recordNomineePhone
+        : false;
 
-      return duplicateByName || duplicateByEmail || duplicateByPhone;
+      return duplicateByEmail || duplicateByPhone;
     });
 
     if (duplicate) {
-      const existingNomineeName = extractField(duplicate, ["Nominee Name", "Name", "Nominee"]) || "Unknown Nominee";
-      const awardLookup =
-        extractField(duplicate, ["Award Name (Lookup)", "Award", "Award Category"]) || "Unknown Award";
-      const cityLookup =
-        extractField(duplicate, ["City Name (Lookup)", "City", "City Name"]) || "Unknown City";
-
       return NextResponse.json(
         {
           ok: false,
-          error:
-            `Duplicate nominee found by email, phone, or name. Existing nomination: ${existingNomineeName} (${awardLookup}, ${cityLookup}). ` +
-            "One nominee can only be nominated once and only for one award.",
+          error: "This nominee has already been submitted for this category.",
         },
         { status: 409 },
       );

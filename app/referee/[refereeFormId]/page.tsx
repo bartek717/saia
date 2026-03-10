@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 type RefereeFormContext = {
   refereeFormId: string;
@@ -16,7 +16,9 @@ type RefereeFormContext = {
 
 export default function RefereeAwardPage() {
   const params = useParams<{ refereeFormId: string }>();
+  const searchParams = useSearchParams();
   const refereeFormId = params.refereeFormId;
+  const token = searchParams.get("token") || "";
 
   const [context, setContext] = useState<RefereeFormContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,9 +33,15 @@ export default function RefereeAwardPage() {
     async function loadContext() {
       try {
         setLoading(true);
-        const response = await fetch(`/api/airtable/referee-forms/${refereeFormId}/context`, {
-          cache: "no-store",
-        });
+
+        if (!token) {
+          throw new Error("Missing secure token in form link.");
+        }
+
+        const response = await fetch(
+          `/api/airtable/referee-forms/${refereeFormId}/context?token=${encodeURIComponent(token)}`,
+          { cache: "no-store" },
+        );
         const payload = (await response.json()) as RefereeFormContext & { error?: string };
 
         if (!response.ok) {
@@ -54,7 +62,7 @@ export default function RefereeAwardPage() {
     if (refereeFormId) {
       loadContext();
     }
-  }, [refereeFormId]);
+  }, [refereeFormId, token]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,6 +89,7 @@ export default function RefereeAwardPage() {
           nomineeName: context.nomineeName,
           refereeName: context.refereeName,
           awardName: context.awardName,
+          token,
           answers: context.questions.map((question, index) => ({
             question,
             answer: answers[index],
@@ -109,7 +118,7 @@ export default function RefereeAwardPage() {
       <section className="hero-card">
         <p className="kicker">South Asian Inspirational Awards</p>
         <h1>Award Reference Form</h1>
-        <p>Complete the referral for the nominee listed below.</p>
+        <p>Complete the referee statement for the nominee listed below.</p>
       </section>
 
       <section className="panel referee-page">

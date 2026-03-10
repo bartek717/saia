@@ -1,0 +1,127 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]: South Asian Inspirational Awards
+      - heading "Nomination Portal" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Complete the nomination workflow and assign two non-family referees.
+    - generic [ref=e7]:
+      - heading "1. City and Award" [level=2] [ref=e8]
+      - paragraph [ref=e9]: Select city, award category, and referral deadline.
+      - paragraph [ref=e10]: Loading Airtable data...
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: City
+          - generic [ref=e14]:
+            - generic [ref=e15]:
+              - radio "Edmonton" [ref=e16]
+              - text: Edmonton
+            - generic [ref=e17]:
+              - radio "Calgary" [ref=e18]
+              - text: Calgary
+        - generic [ref=e19]:
+          - text: Award category
+          - combobox "Award category" [ref=e20]:
+            - option "Select category" [selected]
+            - option "Community Leader"
+            - option "Community Volunteer"
+            - option "Professional Leader"
+            - option "Outstanding Achievement in STEEM"
+            - option "Outstanding Business"
+            - option "Still Going Strong"
+            - option "Outstanding Achievement in Arts & Culture"
+            - option "Outstanding Achievement in Media"
+            - option "Outstanding Achievement in Sports"
+            - option "Rising Star"
+            - option "Lifetime Achievement"
+        - generic [ref=e21]:
+          - text: Referee deadline
+          - textbox "Referee deadline" [ref=e22]: 2026-04-09
+    - generic [ref=e23]:
+      - heading "2. Qualifying and Consent" [level=2] [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - text: Eligibility confirmed?
+          - combobox "Eligibility confirmed?" [ref=e27]:
+            - option "Select" [selected]
+            - option "Yes"
+            - option "No"
+        - generic [ref=e28]:
+          - text: Nominee consent confirmed?
+          - combobox "Nominee consent confirmed?" [ref=e29]:
+            - option "Select" [selected]
+            - option "Yes"
+            - option "No"
+    - generic [ref=e30]:
+      - heading "3. Nominator Information" [level=2] [ref=e31]
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - text: Nominator full name
+          - textbox "Nominator full name" [ref=e34]
+        - generic [ref=e35]:
+          - text: Nominator phone
+          - textbox "Nominator phone" [ref=e36]:
+            - /placeholder: "###-###-####"
+        - generic [ref=e37]:
+          - text: Nominator email
+          - textbox "Nominator email" [ref=e38]
+        - generic [ref=e39]:
+          - text: Relationship to nominee
+          - combobox "Relationship to nominee" [ref=e40]:
+            - option "Select relation" [selected]
+            - option "Professional Colleague"
+            - option "Friend"
+            - option "Family"
+            - option "Self"
+            - option "Other"
+    - generic [ref=e41]:
+      - heading "4. Nominee Information" [level=2] [ref=e42]
+      - paragraph [ref=e43]: Select an award category to continue nominee details.
+    - generic [ref=e44]:
+      - heading "5. Award-Specific Questions" [level=2] [ref=e45]
+      - paragraph [ref=e46]: Select an award category first.
+    - generic [ref=e47]:
+      - heading "6. Referee Contact Details" [level=2] [ref=e48]
+      - paragraph [ref=e49]: Immediate family members are not eligible referees.
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - heading "Referee 1" [level=3] [ref=e52]
+          - generic [ref=e53]:
+            - text: Full name
+            - textbox "Full name" [ref=e54]
+          - generic [ref=e55]:
+            - text: Email
+            - textbox "Email" [ref=e56]
+          - generic [ref=e57]:
+            - text: Phone
+            - textbox "Phone" [ref=e58]
+          - generic [ref=e59]:
+            - text: Relationship to nominee
+            - combobox "Relationship to nominee" [ref=e60]:
+              - option "Select relation" [selected]
+              - option "Professional Colleague"
+              - option "Friend"
+              - option "Family"
+              - option "Self"
+              - option "Other"
+        - generic [ref=e61]:
+          - heading "Referee 2" [level=3] [ref=e62]
+          - generic [ref=e63]:
+            - text: Full name
+            - textbox "Full name" [ref=e64]
+          - generic [ref=e65]:
+            - text: Email
+            - textbox "Email" [ref=e66]
+          - generic [ref=e67]:
+            - text: Phone
+            - textbox "Phone" [ref=e68]
+          - generic [ref=e69]:
+            - text: Relationship to nominee
+            - combobox "Relationship to nominee" [ref=e70]:
+              - option "Select relation" [selected]
+              - option "Professional Colleague"
+              - option "Friend"
+              - option "Family"
+              - option "Self"
+              - option "Other"
+    - button "Submit Nomination" [ref=e72] [cursor=pointer]
+  - alert [ref=e73]
