@@ -141,16 +141,19 @@ export async function POST(
         const status = String(record.get("Submission Status") || "").toLowerCase();
         return status === "submitted";
       }).length;
+      const allRefereeFormsCompleted =
+        linkedForms.length > 0 && submittedCount === linkedForms.length;
 
       const workflowStatus =
         submittedCount >= 2 ? "Fully Complete" : submittedCount === 1 ? "Referee 1 Complete" : "Submitted";
 
       await base(tables.nominations).update(nominationId, {
         "Nomination Workflow Status": workflowStatus,
-        "Nomination Status": submittedCount >= 2 ? "Completed" : "Submitted",
+        "Nomination Status": allRefereeFormsCompleted ? "Completed" : "Submitted",
+        "All Referee Forms Completed": allRefereeFormsCompleted,
       });
 
-      if (submittedCount >= 2) {
+      if (allRefereeFormsCompleted) {
         const nominationContacts = getNominationRecordContacts(nominationRecord);
 
         await callWebhook(process.env.COMPLETION_EMAIL_WEBHOOK_URL, {

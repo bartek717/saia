@@ -160,7 +160,6 @@ export async function POST(request: Request) {
   const city = payload.city?.trim() || "";
   const resolvedCity = normalizeCityName(city);
   const awardCategory = payload.awardCategory?.trim() || "";
-  const eligibilityConfirmed = "Yes";
 
   const nominatorFullName = payload.nominatorFullName?.trim() || "";
   const nominatorPhone = payload.nominatorPhone?.trim() || "";
@@ -449,7 +448,6 @@ export async function POST(request: Request) {
     const nominationPayload = {
       city: resolvedCity,
       awardCategory,
-      eligibilityConfirmed,
       nominator: {
         fullName: nominatorFullName,
         phone: nominatorPhone,
@@ -494,13 +492,16 @@ export async function POST(request: Request) {
       "Nomination Answers JSON": JSON.stringify(awardResponses),
       "Submission Date": new Date().toISOString().slice(0, 10),
 
-      "Eligibility Confirmed": eligibilityConfirmed,
-
       "Nominator Full Name": nominatorFullName,
       "Nominator Phone": nominatorPhone,
       "Nominator Email": nominatorEmail,
       "Relationship to Nominee": nominatorRelationship,
+      "Nominee Phone": awardDefinition.isBusiness ? undefined : nomineePhone,
+      "Nominee Email": awardDefinition.isBusiness ? undefined : nomineeEmail,
+      "Business Phone": awardDefinition.isBusiness ? businessPhone : undefined,
+      "Business Email": awardDefinition.isBusiness ? businessEmail : undefined,
 
+      "All Referee Forms Completed": false,
       "Nomination Workflow Status": "Submitted",
       "Nomination Status": "Submitted",
     });
@@ -527,6 +528,7 @@ export async function POST(request: Request) {
           Name: `${String(refereeRecord.get("Full Name") || "Referee")} - Referee Statement`,
           Nomination: [nominationCreate.id],
           Referee: [refereeRecord.id],
+          "Referee Email": String(refereeRecord.get("Email Address") || ""),
           "Submission Status": "Not Started",
           Deadline: nominationDeadline,
         },
