@@ -60,7 +60,6 @@ export const REFEREE_RELATIONSHIP_OPTIONS = [
   "Professional Colleague",
   "Friend",
   "Family",
-  "Self",
   "Other",
 ] as const;
 

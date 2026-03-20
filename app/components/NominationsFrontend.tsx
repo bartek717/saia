@@ -373,6 +373,34 @@ export default function NominationsFrontend() {
         <p className="kicker">South Asian Inspirational Awards</p>
         <h1>Nomination Portal</h1>
         <p>Complete the nomination workflow and assign two non-family referees.</p>
+        <div className="hero-notice">
+          <p><strong>WE WILL ONLY ACCEPT ONE NOMINATION PER PERSON PER CATEGORY.</strong></p>
+          <p>The first nomination received will be the only one considered.</p>
+          <p>
+            <strong>PLEASE NOTE:</strong> You must complete this form in one sitting.
+            This form cannot be saved by you to come back and complete at a later time,
+            so please ensure you have your nominee information and two references
+            information (name, phone number and email).
+          </p>
+          <div className="hero-notice-links">
+            <p>
+              <strong>Calgary awards</strong><br />
+              <a href="https://southasianawards.org/calgary-saia-awards/saia-awards/" target="_blank" rel="noopener noreferrer">
+                https://southasianawards.org/calgary-saia-awards/saia-awards/
+              </a>
+            </p>
+            <p>
+              <strong>Edmonton awards</strong><br />
+              <a href="https://southasianawards.org/edmonton-saia-awards/edmonton-awards/" target="_blank" rel="noopener noreferrer">
+                https://southasianawards.org/edmonton-saia-awards/edmonton-awards/
+              </a>
+            </p>
+            <p>
+              <strong>Contact details</strong> –{" "}
+              <a href="mailto:saia@sifarish.org">saia@sifarish.org</a>
+            </p>
+          </div>
+        </div>
       </section>
 
       {finalSubmitted && (
