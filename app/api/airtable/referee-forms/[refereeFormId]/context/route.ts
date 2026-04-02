@@ -1,6 +1,6 @@
 import Airtable from "airtable";
 import { NextResponse } from "next/server";
-import { verifyRefereeToken } from "@/app/lib/refereeToken";
+import { verifyTokenFormat, checkTokenExpiry } from "@/app/lib/refereeToken";
 import { findRefereeFormLocation } from "@/app/lib/airtable";
 
 function extractField(record: Airtable.Record<Airtable.FieldSet>, candidates: string[]) {
@@ -67,10 +67,10 @@ export async function GET(
     const { refereeFormId } = await context.params;
     const url = new URL(request.url);
     const token = url.searchParams.get("token") || "";
-    const tokenCheck = verifyRefereeToken(token, refereeFormId);
+    const formatCheck = verifyTokenFormat(token);
 
-    if (!tokenCheck.ok) {
-      return NextResponse.json({ error: tokenCheck.reason }, { status: 403 });
+    if (!formatCheck.ok) {
+      return NextResponse.json({ error: formatCheck.reason }, { status: 403 });
     }
 
     const location = await findRefereeFormLocation(pat, refereeFormId);
@@ -81,8 +81,13 @@ export async function GET(
     const { base, tables, refereeForm } = location;
 
     const storedToken = extractField(refereeForm, ["Secure Token"]);
-    if (storedToken && storedToken !== token) {
+    if (!storedToken || storedToken !== token) {
       return NextResponse.json({ error: "Token mismatch." }, { status: 403 });
+    }
+
+    const expiryCheck = checkTokenExpiry(extractField(refereeForm, ["Token Expires At"]) || undefined);
+    if (!expiryCheck.ok) {
+      return NextResponse.json({ error: expiryCheck.reason }, { status: 403 });
     }
 
     const nominationId = ((refereeForm.get("Nomination") as string[] | undefined) || [])[0];

@@ -1,6 +1,6 @@
 import Airtable from "airtable";
 import { NextResponse } from "next/server";
-import { verifyRefereeToken } from "@/app/lib/refereeToken";
+import { verifyTokenFormat, checkTokenExpiry } from "@/app/lib/refereeToken";
 import { findRefereeFormLocation } from "@/app/lib/airtable";
 import { getNominationRecordContacts } from "@/app/lib/nominationRecord";
 
@@ -94,9 +94,9 @@ export async function POST(
   try {
     const { refereeFormId } = await context.params;
 
-    const tokenCheck = verifyRefereeToken(token, refereeFormId);
-    if (!tokenCheck.ok) {
-      return NextResponse.json({ ok: false, error: tokenCheck.reason }, { status: 403 });
+    const formatCheck = verifyTokenFormat(token);
+    if (!formatCheck.ok) {
+      return NextResponse.json({ ok: false, error: formatCheck.reason }, { status: 403 });
     }
 
     const location = await findRefereeFormLocation(pat, refereeFormId);
@@ -107,8 +107,13 @@ export async function POST(
     const { base, tables, refereeForm: existingRecord } = location;
 
     const existingToken = extractField(existingRecord, ["Secure Token"]);
-    if (existingToken && existingToken !== token) {
+    if (!existingToken || existingToken !== token) {
       return NextResponse.json({ ok: false, error: "Token mismatch." }, { status: 403 });
+    }
+
+    const expiryCheck = checkTokenExpiry(extractField(existingRecord, ["Token Expires At"]) || undefined);
+    if (!expiryCheck.ok) {
+      return NextResponse.json({ ok: false, error: expiryCheck.reason }, { status: 403 });
     }
 
     const existingStatus = String(existingRecord.get("Submission Status") || "").toLowerCase();
