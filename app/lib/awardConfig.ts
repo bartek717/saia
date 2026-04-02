@@ -201,7 +201,7 @@ export const AWARD_DEFINITIONS: Record<AwardCategory, AwardDefinition> = {
     nominationQuestions: [
       {
         id: "businessDescription",
-        label: "Business description (what it sells + how long operating)",
+        label: "Business description (services + how long operating)",
         type: "textarea",
         required: true,
       },
@@ -258,7 +258,7 @@ export const AWARD_DEFINITIONS: Record<AwardCategory, AwardDefinition> = {
   },
   "Outstanding Achievement in Arts & Culture": {
     isBusiness: false,
-    cvRequirement: "Optional",
+    cvRequirement: "Required",
     nominationQuestions: [
       {
         id: "artsInvolvement",
@@ -274,7 +274,7 @@ export const AWARD_DEFINITIONS: Record<AwardCategory, AwardDefinition> = {
       },
       {
         id: "artsCommunityContribution",
-        label: "Contribution to arts scene in selected city",
+        label: "Contribution leading to change in the arts scene in selected city",
         type: "textarea",
         required: true,
       },
@@ -305,7 +305,7 @@ export const AWARD_DEFINITIONS: Record<AwardCategory, AwardDefinition> = {
       },
       {
         id: "mediaCommunityContribution",
-        label: "Contribution to community",
+        label: "Contribution leading to positive change in the community",
         type: "textarea",
         required: true,
       },
@@ -336,7 +336,7 @@ export const AWARD_DEFINITIONS: Record<AwardCategory, AwardDefinition> = {
       },
       {
         id: "sportsCommunityContribution",
-        label: "Community contribution",
+        label: "Contribution leading to positive change in the community",
         type: "textarea",
         required: true,
       },

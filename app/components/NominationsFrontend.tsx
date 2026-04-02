@@ -50,6 +50,9 @@ type NominationFormState = {
   parentEmail: string;
   parentConsentConfirmed: boolean;
 
+  eligibilityConfirmed: boolean;
+  nomineeConsentConfirmed: boolean;
+
   awardAnswers: Record<string, string>;
 };
 
@@ -101,6 +104,9 @@ const initialForm: NominationFormState = {
   parentPhone: "",
   parentEmail: "",
   parentConsentConfirmed: false,
+
+  eligibilityConfirmed: false,
+  nomineeConsentConfirmed: false,
 
   awardAnswers: {},
 };
@@ -243,6 +249,14 @@ export default function NominationsFrontend() {
 
     if (!isAwardCategory(form.awardCategory)) {
       return "Award category is required.";
+    }
+
+    if (!form.eligibilityConfirmed) {
+      return "Please confirm you have reviewed the eligibility criteria.";
+    }
+
+    if (!form.nomineeConsentConfirmed) {
+      return "Please confirm the nominee has consented to this nomination.";
     }
 
     if (!form.nominatorFullName.trim()) {
@@ -469,7 +483,35 @@ export default function NominationsFrontend() {
           </section>
 
           <section className="panel">
-            <h2>2. Nominator Information</h2>
+            <h2>2. Qualifying and Consent</h2>
+            <p className="supporting-text">
+              Both confirmations below are required before proceeding.{" "}
+              <a href="/SAIA-Nomination-Guidelines.docx" target="_blank" rel="noopener noreferrer">
+                Review eligibility criteria
+              </a>
+            </p>
+            <div className="consent-checks">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.eligibilityConfirmed}
+                  onChange={(event) => updateField("eligibilityConfirmed", event.target.checked)}
+                />
+                Please confirm you have reviewed the eligibility criteria and that the nominee is eligible to be nominated.
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.nomineeConsentConfirmed}
+                  onChange={(event) => updateField("nomineeConsentConfirmed", event.target.checked)}
+                />
+                The nominee has consented to this nomination and the publication of their name, photo, and related information.
+              </label>
+            </div>
+          </section>
+
+          <section className="panel">
+            <h2>3. Nominator Information</h2>
             <div className="form-grid">
               <label>
                 Nominator full name
@@ -534,7 +576,7 @@ export default function NominationsFrontend() {
           </section>
 
           <section className="panel">
-            <h2>3. Nominee Information</h2>
+            <h2>4. Nominee Information</h2>
             {!awardDefinition && (
               <p className="supporting-text">Select an award category to continue nominee details.</p>
             )}
@@ -672,7 +714,7 @@ export default function NominationsFrontend() {
           </section>
 
           <section className="panel">
-            <h2>4. Award-Specific Questions</h2>
+            <h2>5. Award-Specific Questions</h2>
             {!awardDefinition && <p className="supporting-text">Select an award category first.</p>}
 
             {awardDefinition && (
@@ -834,7 +876,7 @@ export default function NominationsFrontend() {
           </section>
 
           <section className="panel">
-            <h2>5. Referee Contact Details</h2>
+            <h2>6. Referee Contact Details</h2>
             <p className="supporting-text">Immediate family members are not eligible referees.</p>
 
             <div className="form-grid">
